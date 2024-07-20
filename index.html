@@ -9,64 +9,57 @@
             height: 100%;
             margin: 0;
             padding: 0;
-            overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f0f0;
             color: #333;
-        }
-        .container {
             display: flex;
             flex-direction: column;
-            height: 100%;
+            align-items: center;
+        }
+        .container {
             max-width: 800px;
-            margin: 0 auto;
+            width: 100%;
             padding: 20px;
             box-sizing: border-box;
+            overflow-y: auto;
         }
         h1 {
             color: #2c3e50;
-            margin: 0 0 20px;
+            margin-bottom: 20px;
             text-align: center;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-        }
-        .game-area {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
         }
         #gameContainer {
             background-color: white;
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            flex: 1;
+            margin-bottom: 20px;
         }
         canvas {
             border: 2px solid #2c3e50;
             border-radius: 5px;
-            max-width: 100%;
-            max-height: 100%;
+            display: block;
+            margin: 0 auto;
         }
         #scoreBoard {
-            margin-top: 10px;
+            margin-top: 20px;
             display: flex;
             justify-content: space-between;
         }
         #currentScore, #highScore {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
         }
         #controls {
-            margin-top: 10px;
+            margin-top: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         button {
-            font-size: 14px;
-            padding: 8px 16px;
+            font-size: 16px;
+            padding: 10px 20px;
             color: white;
             border: none;
             border-radius: 5px;
@@ -90,82 +83,261 @@
             align-items: center;
         }
         #gameSpeed label {
-            margin-right: 5px;
+            margin-right: 10px;
         }
         #speedSelect {
             padding: 5px;
         }
         #instructions {
-            margin-top: 10px;
+            margin-top: 20px;
             background-color: #e8f6f3;
             border-radius: 5px;
             padding: 10px;
-            font-size: 12px;
+            font-size: 14px;
         }
         #previousScores {
-            margin-left: 20px;
             background-color: white;
             border-radius: 10px;
-            padding: 10px;
+            padding: 20px;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            overflow-y: auto;
-            max-height: 100%;
-            flex: 0 0 200px;
         }
         #previousScores h3 {
-            margin: 0 0 10px;
+            margin-bottom: 10px;
             color: #2c3e50;
-            font-size: 16px;
         }
         #scoreList {
             list-style-type: none;
             padding: 0;
-            margin: 0;
         }
         #scoreList li {
             background-color: #ecf0f1;
             margin-bottom: 5px;
-            padding: 8px;
+            padding: 8px 12px;
             border-radius: 3px;
-            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Dan Finn's Snake Game</h1>
-        <div class="game-area">
-            <div id="gameContainer">
-                <canvas id="gameCanvas" width="400" height="400"></canvas>
-                <div id="scoreBoard">
-                    <div id="currentScore">Score: 0</div>
-                    <div id="highScore">High Score: 0</div>
-                </div>
-                <div id="controls">
-                    <button id="startButton">Start Game</button>
-                    <button id="pauseButton" disabled>Pause</button>
-                    <div id="gameSpeed">
-                        <label for="speedSelect">Speed:</label>
-                        <select id="speedSelect">
-                            <option value="200">Slow</option>
-                            <option value="100" selected>Normal</option>
-                            <option value="50">Fast</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="instructions">
-                    Use arrow keys to control the snake. Eat the red food to grow and increase your score!
+        <div id="gameContainer">
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
+            <div id="scoreBoard">
+                <div id="currentScore">Score: 0</div>
+                <div id="highScore">High Score: 0</div>
+            </div>
+            <div id="controls">
+                <button id="startButton">Start Game</button>
+                <button id="pauseButton" disabled>Pause</button>
+                <div id="gameSpeed">
+                    <label for="speedSelect">Speed:</label>
+                    <select id="speedSelect">
+                        <option value="200">Slow</option>
+                        <option value="100" selected>Normal</option>
+                        <option value="50">Fast</option>
+                    </select>
                 </div>
             </div>
-            <div id="previousScores">
-                <h3>Previous Scores</h3>
-                <ul id="scoreList"></ul>
+            <div id="instructions">
+                Use arrow keys to control the snake. Eat the red food to grow and increase your score!
             </div>
+        </div>
+        <div id="previousScores">
+            <h3>Previous Scores</h3>
+            <ul id="scoreList"></ul>
         </div>
     </div>
 
     <script>
-        // (JavaScript remains the same as in the previous version)
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const currentScoreElement = document.getElementById('currentScore');
+        const highScoreElement = document.getElementById('highScore');
+        const startButton = document.getElementById('startButton');
+        const pauseButton = document.getElementById('pauseButton');
+        const scoreList = document.getElementById('scoreList');
+        const speedSelect = document.getElementById('speedSelect');
+
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+        let snake = [];
+        let food = {};
+        let dx = 0;
+        let dy = 0;
+        let score = 0;
+        let highScore = 0;
+        let gameInterval;
+        let isGameRunning = false;
+        let isPaused = false;
+
+        function initGame() {
+            snake = [{x: 10, y: 10}];
+            generateFood();
+            score = 0;
+            dx = 0;
+            dy = 0;
+            updateScore();
+        }
+
+        function drawGame() {
+            if (isPaused) return;
+
+            clearCanvas();
+            moveSnake();
+            drawSnake();
+            drawFood();
+            checkCollision();
+        }
+
+        function clearCanvas() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function moveSnake() {
+            const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                updateScore();
+                generateFood();
+            } else {
+                snake.pop();
+            }
+        }
+
+        function drawSnake() {
+            ctx.fillStyle = '#3498db';
+            snake.forEach((segment, index) => {
+                ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 2, gridSize - 2);
+                if (index === 0) {
+                    ctx.fillStyle = '#2980b9';
+                }
+            });
+        }
+
+        function drawFood() {
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+        }
+
+        function generateFood() {
+            food.x = Math.floor(Math.random() * tileCount);
+            food.y = Math.floor(Math.random() * tileCount);
+        }
+
+        function checkCollision() {
+            const head = snake[0];
+
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                gameOver();
+            }
+
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    gameOver();
+                }
+            }
+        }
+
+        function gameOver() {
+            clearInterval(gameInterval);
+            isGameRunning = false;
+            startButton.textContent = 'Restart Game';
+            startButton.disabled = false;
+            pauseButton.disabled = true;
+            addScoreToList(score);
+            if (score > highScore) {
+                highScore = score;
+                highScoreElement.textContent = `High Score: ${highScore}`;
+            }
+        }
+
+        function updateScore() {
+            currentScoreElement.textContent = `Score: ${score}`;
+        }
+
+        function addScoreToList(score) {
+            const li = document.createElement('li');
+            const date = new Date().toLocaleString();
+            li.innerHTML = `<span>Score: ${score}</span><span>${date}</span>`;
+            scoreList.insertBefore(li, scoreList.firstChild);
+            if (scoreList.children.length > 5) {
+                scoreList.removeChild(scoreList.lastChild);
+            }
+        }
+
+        function changeDirection(event) {
+            const LEFT_KEY = 37;
+            const RIGHT_KEY = 39;
+            const UP_KEY = 38;
+            const DOWN_KEY = 40;
+
+            if (isPaused) return;
+
+            const keyPressed = event.keyCode;
+            const goingUp = dy === -1;
+            const goingDown = dy === 1;
+            const goingRight = dx === 1;
+            const goingLeft = dx === -1;
+
+            if (keyPressed === LEFT_KEY && !goingRight) {
+                dx = -1;
+                dy = 0;
+            }
+            if (keyPressed === UP_KEY && !goingDown) {
+                dx = 0;
+                dy = -1;
+            }
+            if (keyPressed === RIGHT_KEY && !goingLeft) {
+                dx = 1;
+                dy = 0;
+            }
+            if (keyPressed === DOWN_KEY && !goingUp) {
+                dx = 0;
+                dy = 1;
+            }
+        }
+
+        function startGame() {
+            if (!isGameRunning) {
+                initGame();
+                isGameRunning = true;
+                isPaused = false;
+                startButton.textContent = 'Restart Game';
+                pauseButton.disabled = false;
+                gameInterval = setInterval(drawGame, parseInt(speedSelect.value));
+            } else {
+                clearInterval(gameInterval);
+                initGame();
+                gameInterval = setInterval(drawGame, parseInt(speedSelect.value));
+            }
+        }
+
+        function pauseGame() {
+            if (isGameRunning) {
+                isPaused = !isPaused;
+                pauseButton.textContent = isPaused ? 'Resume' : 'Pause';
+            }
+        }
+
+        function changeSpeed() {
+            if (isGameRunning) {
+                clearInterval(gameInterval);
+                gameInterval = setInterval(drawGame, parseInt(speedSelect.value));
+            }
+        }
+
+        document.addEventListener('keydown', changeDirection);
+        startButton.addEventListener('click', startGame);
+        pauseButton.addEventListener('click', pauseGame);
+        speedSelect.addEventListener('change', changeSpeed);
+
+        // Initialize the game
+        initGame();
     </script>
 </body>
 </html>
