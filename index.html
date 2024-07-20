@@ -12,54 +12,61 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f0f0f0;
             color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            overflow: hidden;
         }
         .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
             max-width: 800px;
-            width: 100%;
+            margin: 0 auto;
             padding: 20px;
             box-sizing: border-box;
-            overflow-y: auto;
         }
         h1 {
             color: #2c3e50;
-            margin-bottom: 20px;
+            margin: 0 0 20px;
             text-align: center;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .game-area {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
         }
         #gameContainer {
             background-color: white;
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
         }
         canvas {
             border: 2px solid #2c3e50;
             border-radius: 5px;
-            display: block;
-            margin: 0 auto;
+            max-width: 100%;
+            max-height: 100%;
         }
         #scoreBoard {
-            margin-top: 20px;
+            margin-top: 10px;
             display: flex;
             justify-content: space-between;
         }
         #currentScore, #highScore {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
         }
         #controls {
-            margin-top: 20px;
+            margin-top: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         button {
-            font-size: 16px;
-            padding: 10px 20px;
+            font-size: 14px;
+            padding: 8px 16px;
             color: white;
             border: none;
             border-radius: 5px;
@@ -83,70 +90,77 @@
             align-items: center;
         }
         #gameSpeed label {
-            margin-right: 10px;
+            margin-right: 5px;
         }
         #speedSelect {
             padding: 5px;
         }
         #instructions {
-            margin-top: 20px;
+            margin-top: 10px;
             background-color: #e8f6f3;
             border-radius: 5px;
             padding: 10px;
-            font-size: 14px;
+            font-size: 12px;
         }
         #previousScores {
+            margin-left: 20px;
             background-color: white;
             border-radius: 10px;
-            padding: 20px;
+            padding: 10px;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            max-height: 100%;
+            flex: 0 0 200px;
         }
         #previousScores h3 {
-            margin-bottom: 10px;
+            margin: 0 0 10px;
             color: #2c3e50;
+            font-size: 16px;
         }
         #scoreList {
             list-style-type: none;
             padding: 0;
+            margin: 0;
         }
         #scoreList li {
             background-color: #ecf0f1;
             margin-bottom: 5px;
-            padding: 8px 12px;
+            padding: 8px;
             border-radius: 3px;
-            display: flex;
-            justify-content: space-between;
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Dan Finn's Snake Game</h1>
-        <div id="gameContainer">
-            <canvas id="gameCanvas" width="400" height="400"></canvas>
-            <div id="scoreBoard">
-                <div id="currentScore">Score: 0</div>
-                <div id="highScore">High Score: 0</div>
-            </div>
-            <div id="controls">
-                <button id="startButton">Start Game</button>
-                <button id="pauseButton" disabled>Pause</button>
-                <div id="gameSpeed">
-                    <label for="speedSelect">Speed:</label>
-                    <select id="speedSelect">
-                        <option value="200">Slow</option>
-                        <option value="100" selected>Normal</option>
-                        <option value="50">Fast</option>
-                    </select>
+        <div class="game-area">
+            <div id="gameContainer">
+                <canvas id="gameCanvas" width="400" height="400"></canvas>
+                <div id="scoreBoard">
+                    <div id="currentScore">Score: 0</div>
+                    <div id="highScore">High Score: 0</div>
+                </div>
+                <div id="controls">
+                    <button id="startButton">Start Game</button>
+                    <button id="pauseButton" disabled>Pause</button>
+                    <div id="gameSpeed">
+                        <label for="speedSelect">Speed:</label>
+                        <select id="speedSelect">
+                            <option value="200">Slow</option>
+                            <option value="100" selected>Normal</option>
+                            <option value="50">Fast</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="instructions">
+                    Use arrow keys to control the snake. Eat the red food to grow and increase your score!
                 </div>
             </div>
-            <div id="instructions">
-                Use arrow keys to control the snake. Eat the red food to grow and increase your score!
+            <div id="previousScores">
+                <h3>Previous Scores</h3>
+                <ul id="scoreList"></ul>
             </div>
-        </div>
-        <div id="previousScores">
-            <h3>Previous Scores</h3>
-            <ul id="scoreList"></ul>
         </div>
     </div>
 
@@ -263,7 +277,7 @@
         function addScoreToList(score) {
             const li = document.createElement('li');
             const date = new Date().toLocaleString();
-            li.innerHTML = `<span>Score: ${score}</span><span>${date}</span>`;
+            li.textContent = `Score: ${score} - ${date}`;
             scoreList.insertBefore(li, scoreList.firstChild);
             if (scoreList.children.length > 5) {
                 scoreList.removeChild(scoreList.lastChild);
